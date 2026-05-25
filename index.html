@@ -25,7 +25,7 @@
             padding: 30px;
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(0,0,0,0.08);
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
             text-align: center;
             position: relative;
@@ -35,7 +35,7 @@
         .screen { display: none; }
         .screen.active { display: block; }
 
-        /* Typography & Layout */
+        /* Typography */
         h1 { margin-top: 0; font-size: 2rem; color: #1e293b; }
         h2 { margin-top: 0; font-size: 1.4rem; color: #334155; }
         p.subtitle { color: #64748b; font-size: 1.1rem; line-height: 1.5; margin-bottom: 30px; }
@@ -65,25 +65,33 @@
         }
         .restart-btn:active { background: #fee2e2; }
 
-        /* The Matrix */
-        .matrix-grid {
+        /* Dynamic Puzzle Area */
+        .puzzle-wrapper {
+            background: #e2e8f0;
+            padding: 12px;
+            border-radius: 12px;
+            margin: 20px auto;
+            display: inline-block;
+        }
+        .matrix-layout {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             width: 240px;
-            margin: 20px auto;
-            background: #e2e8f0;
-            padding: 10px;
-            border-radius: 12px;
+        }
+        .sequence-layout {
+            display: flex;
+            gap: 10px;
         }
         .matrix-cell {
             background: white;
-            aspect-ratio: 1;
+            width: 100px;
+            height: 100px;
             display: flex;
             justify-content: center;
             align-items: center;
             border-radius: 8px;
-            font-size: 4rem;
+            font-size: 3rem;
             color: #cbd5e1;
             font-weight: bold;
         }
@@ -121,10 +129,7 @@
             align-items: center;
             gap: 10px;
         }
-        .feedback-text {
-            font-weight: bold;
-            font-size: 1.3rem;
-        }
+        .feedback-text { font-weight: bold; font-size: 1.3rem; }
         .correct { color: #10b981; }
         .incorrect { color: #ef4444; }
 
@@ -145,12 +150,8 @@
         
         .hidden { display: none !important; }
 
-        /* Trophy Screen Specifics */
-        .trophy-icon {
-            font-size: 6rem;
-            margin: 20px 0;
-            animation: bounce 2s infinite;
-        }
+        /* Trophy Screen */
+        .trophy-icon { font-size: 6rem; margin: 20px 0; animation: bounce 2s infinite; }
         @keyframes bounce {
             0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
             40% { transform: translateY(-20px); }
@@ -171,24 +172,14 @@
 
 <div class="container">
     
+    <!-- 1. INTRO SCREEN -->
     <div id="intro-screen" class="screen active">
         <h1>NGAT Practice</h1>
-        <p class="subtitle">Get ready to test your pattern recognition skills! The challenge consists of 10 levels, with 10 questions each.</p>
-        <div class="matrix-grid" style="transform: scale(0.8); margin-bottom: 40px;">
-            <div class="matrix-cell">
-                <svg width="60" height="60" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#3b82f6" /></svg>
-            </div>
-            <div class="matrix-cell">
-                <svg width="60" height="60" viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="8" fill="#10b981" /></svg>
-            </div>
-            <div class="matrix-cell">
-                <svg width="60" height="60" viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" fill="#ef4444" rx="5" /></svg>
-            </div>
-            <div class="matrix-cell">?</div>
-        </div>
+        <p class="subtitle">Get ready to test your pattern recognition skills! The challenge consists of 10 levels.</p>
         <button class="primary-btn" onclick="startGame()">Start Test</button>
     </div>
 
+    <!-- 2. TESTING SCREEN -->
     <div id="test-screen" class="screen">
         <div class="header">
             <span id="level-counter">Level 1</span>
@@ -198,11 +189,8 @@
         
         <h2>Which shape completes the puzzle?</h2>
         
-        <div class="matrix-grid">
-            <div class="matrix-cell" id="cell-0"></div>
-            <div class="matrix-cell" id="cell-1"></div>
-            <div class="matrix-cell" id="cell-2"></div>
-            <div class="matrix-cell" id="cell-3">?</div>
+        <div id="puzzle-container" class="puzzle-wrapper">
+            <!-- Grid is injected here by JS -->
         </div>
 
         <div class="options-grid" id="options"></div>
@@ -213,6 +201,7 @@
         </div>
     </div>
 
+    <!-- 3. LEVEL COMPLETE SCREEN -->
     <div id="level-screen" class="screen">
         <h1>Level Complete!</h1>
         <div class="trophy-icon">⭐</div>
@@ -223,6 +212,7 @@
         <button class="primary-btn" onclick="startNextLevel()">Continue to Next Level</button>
     </div>
 
+    <!-- 4. TROPHY SCREEN -->
     <div id="trophy-screen" class="screen">
         <h1>Amazing Job!</h1>
         <div class="trophy-icon">🏆</div>
@@ -247,18 +237,41 @@
 
     const Q_PER_LEVEL = 10;
     const MAX_LEVELS = 10;
-    const TOTAL_Q = Q_PER_LEVEL * MAX_LEVELS;
 
-    // Logic Engine Components
-    const shapes = ['circle', 'square', 'triangle', 'star'];
+    // Advanced Engine Components
+    const simpleShapes = ['circle', 'square', 'triangle'];
+    const nestedShapes = ['nested-square', 'nested-circle'];
     const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
 
-    function getSVG(shape, color) {
-        const base = `<svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">`;
-        if (shape === 'circle') return `${base}<circle cx="50" cy="50" r="40" fill="${color}" /></svg>`;
-        if (shape === 'square') return `${base}<rect x="15" y="15" width="70" height="70" rx="8" fill="${color}" /></svg>`;
-        if (shape === 'triangle') return `${base}<polygon points="50,15 90,85 10,85" fill="${color}" stroke-linejoin="round" /></svg>`;
-        if (shape === 'star') return `${base}<polygon points="50,10 61,35 88,35 67,52 74,78 50,62 26,78 33,52 12,35 39,35" fill="${color}" stroke-linejoin="round"/></svg>`;
+    // Universal SVG Renderer
+    function getSVG(props) {
+        const shape = props.shape;
+        const color = props.color || '#333';
+        const innerColor = props.innerColor || '#fff';
+        const rotation = props.rotation || 0;
+        const dots = props.dots || 0;
+
+        const base = `<svg width="80" height="80" viewBox="0 0 100 100" style="transform: rotate(${rotation}deg); transition: transform 0.3s;" xmlns="http://www.w3.org/2000/svg">`;
+        let content = '';
+
+        if (shape === 'circle') content = `<circle cx="50" cy="50" r="40" fill="${color}" />`;
+        else if (shape === 'square') content = `<rect x="15" y="15" width="70" height="70" rx="8" fill="${color}" />`;
+        else if (shape === 'triangle') content = `<polygon points="50,15 90,85 10,85" fill="${color}" stroke-linejoin="round" />`;
+        else if (shape === 'arrow') content = `<polygon points="50,15 75,45 60,45 60,85 40,85 40,45 25,45" fill="${color}" stroke-linejoin="round" />`;
+        else if (shape === 'nested-square') {
+            content = `<rect x="15" y="15" width="70" height="70" rx="8" fill="${color}" /><circle cx="50" cy="50" r="20" fill="${innerColor}" />`;
+        }
+        else if (shape === 'nested-circle') {
+            content = `<circle cx="50" cy="50" r="40" fill="${color}" /><rect x="30" y="30" width="40" height="40" rx="4" fill="${innerColor}" />`;
+        }
+        else if (shape === 'dots-grid') {
+            content = `<rect x="15" y="15" width="70" height="70" rx="8" fill="#cbd5e1" />`;
+            const positions = [[35,35], [65,35], [35,65], [65,65]];
+            for(let i=0; i<dots; i++) {
+                content += `<circle cx="${positions[i][0]}" cy="${positions[i][1]}" r="10" fill="${color}" />`;
+            }
+        }
+        return base + content + `</svg>`;
     }
 
     function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
@@ -285,62 +298,145 @@
     }
 
     function resetToIntro() {
-        if (confirm("Are you sure you want to restart the whole test? Your progress will be lost.")) {
+        if (confirm("Are you sure you want to restart? Your progress will be lost.")) {
             switchScreen('intro-screen');
         }
     }
 
-    // Core Game Logic
+    // Dynamic Visual Renderer
+    function renderPuzzle(cells, layoutClass) {
+        const container = document.getElementById('puzzle-container');
+        container.className = `puzzle-wrapper ${layoutClass}`;
+        let html = '';
+        cells.forEach(cell => {
+            if (cell === '?') html += '<div class="matrix-cell">?</div>';
+            else html += `<div class="matrix-cell">${getSVG(cell)}</div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    // Core Logic Engine
     function generatePuzzle() {
         hasAnswered = false;
         currentGlobalQuestion++;
         currentLevelQuestion++;
 
-        // Update UI Text
         document.getElementById('level-counter').innerText = `Level ${currentLevel}`;
         document.getElementById('question-counter').innerText = `Q: ${currentLevelQuestion}/${Q_PER_LEVEL}`;
-        
-        // Reset Feedback Area
         document.getElementById('feedback-text').innerText = '';
         document.getElementById('next-btn').classList.add('hidden');
 
-        // Logic Generation
-        let col1Shape = getRandomItem(shapes);
-        let col2Shape = getRandomItem(shapes.filter(s => s !== col1Shape));
-        let row1Color = getRandomItem(colors);
-        let row2Color = getRandomItem(colors.filter(c => c !== row1Color));
+        const puzzleType = Math.floor(Math.random() * 4); // Randomly choose between 4 puzzle types
+        let cells = [];
+        let correctAnswer = {};
+        let layoutClass = 'matrix-layout';
 
-        let cell0 = { shape: col1Shape, color: row1Color }; 
-        let cell1 = { shape: col2Shape, color: row1Color }; 
-        let cell2 = { shape: col1Shape, color: row2Color }; 
-        let correctAnswer = { shape: col2Shape, color: row2Color };
+        if (puzzleType === 0) {
+            // Type 0: Basic Matrix
+            let s1 = getRandomItem(simpleShapes);
+            let s2 = getRandomItem(simpleShapes.filter(s => s !== s1));
+            let c1 = getRandomItem(colors);
+            let c2 = getRandomItem(colors.filter(c => c !== c1));
+            cells = [
+                {shape: s1, color: c1}, {shape: s2, color: c1},
+                {shape: s1, color: c2}, '?'
+            ];
+            correctAnswer = {shape: s2, color: c2, type: 'basic'};
+            layoutClass = 'matrix-layout';
+        } 
+        else if (puzzleType === 1) {
+            // Type 1: Color Inversion Swap Matrix
+            let s1 = getRandomItem(nestedShapes);
+            let s2 = getRandomItem(nestedShapes.filter(s => s !== s1));
+            let out1 = getRandomItem(colors);
+            let in1 = getRandomItem(colors.filter(c => c !== out1));
+            let out2 = getRandomItem(colors);
+            let in2 = getRandomItem(colors.filter(c => c !== out2));
+            
+            cells = [
+                {shape: s1, color: out1, innerColor: in1}, {shape: s1, color: in1, innerColor: out1},
+                {shape: s2, color: out2, innerColor: in2}, '?'
+            ];
+            correctAnswer = {shape: s2, color: in2, innerColor: out2, type: 'swap'};
+            layoutClass = 'matrix-layout';
+        }
+        else if (puzzleType === 2) {
+            // Type 2: Rotation Sequence
+            let c1 = getRandomItem(colors);
+            cells = [
+                {shape: 'arrow', color: c1, rotation: 0},
+                {shape: 'arrow', color: c1, rotation: 90},
+                {shape: 'arrow', color: c1, rotation: 180},
+                '?'
+            ];
+            correctAnswer = {shape: 'arrow', color: c1, rotation: 270, type: 'rotation'};
+            layoutClass = 'sequence-layout';
+        }
+        else if (puzzleType === 3) {
+            // Type 3: Progressive Addition Sequence
+            let c1 = getRandomItem(colors);
+            cells = [
+                {shape: 'dots-grid', color: c1, dots: 1},
+                {shape: 'dots-grid', color: c1, dots: 2},
+                {shape: 'dots-grid', color: c1, dots: 3},
+                '?'
+            ];
+            correctAnswer = {shape: 'dots-grid', color: c1, dots: 4, type: 'dots'};
+            layoutClass = 'sequence-layout';
+        }
 
-        document.getElementById('cell-0').innerHTML = getSVG(cell0.shape, cell0.color);
-        document.getElementById('cell-1').innerHTML = getSVG(cell1.shape, cell1.color);
-        document.getElementById('cell-2').innerHTML = getSVG(cell2.shape, cell2.color);
-
-        generateOptions(correctAnswer);
+        renderPuzzle(cells, layoutClass);
+        generateOptions(correctAnswer, correctAnswer.type);
     }
 
-    function generateOptions(correct) {
+    function generateOptions(correct, type) {
         const optionsDiv = document.getElementById('options');
         optionsDiv.innerHTML = '';
         
         let choices = [correct];
-        while(choices.length < 4) {
-            let randShape = getRandomItem(shapes);
-            let randColor = getRandomItem(colors);
-            let isDuplicate = choices.some(c => c.shape === randShape && c.color === randColor);
-            if (!isDuplicate) choices.push({ shape: randShape, color: randColor });
+        let attempts = 0;
+        
+        // Generate 3 incorrect distractors based on the puzzle type
+        while(choices.length < 4 && attempts < 100) {
+            attempts++;
+            let randProps = {};
+            
+            if (type === 'rotation') {
+                randProps = { shape: 'arrow', color: correct.color, rotation: getRandomItem([0, 90, 180, 270]) };
+            } else if (type === 'dots') {
+                randProps = { shape: 'dots-grid', color: correct.color, dots: getRandomItem([1, 2, 3, 4]) };
+            } else if (type === 'swap') {
+                let outC = getRandomItem(colors);
+                randProps = { 
+                    shape: correct.shape, 
+                    color: outC, 
+                    innerColor: getRandomItem(colors.filter(c => c !== outC))
+                };
+            } else {
+                randProps = { shape: getRandomItem(simpleShapes), color: getRandomItem(colors) };
+            }
+            
+            // Ensure no duplicate options
+            let isDup = choices.some(c => 
+                c.shape === randProps.shape && c.color === randProps.color && 
+                c.innerColor === randProps.innerColor && c.rotation === randProps.rotation && 
+                c.dots === randProps.dots
+            );
+            
+            if (!isDup) choices.push(randProps);
         }
 
+        // Shuffle
         choices.sort(() => Math.random() - 0.5);
 
         choices.forEach(choice => {
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerHTML = getSVG(choice.shape, choice.color);
-            let isCorrect = (choice.shape === correct.shape && choice.color === correct.color);
+            btn.innerHTML = getSVG(choice);
+            
+            let isCorrect = (choice.shape === correct.shape && choice.color === correct.color && 
+                             choice.innerColor === correct.innerColor && choice.rotation === correct.rotation && 
+                             choice.dots === correct.dots);
             
             btn.onclick = () => evaluateAnswer(isCorrect, btn);
             optionsDiv.appendChild(btn);
@@ -352,9 +448,6 @@
         hasAnswered = true;
 
         const feedbackText = document.getElementById('feedback-text');
-        const nextBtn = document.getElementById('next-btn');
-
-        // Disable all other buttons
         document.querySelectorAll('.option-btn').forEach(btn => btn.classList.add('disabled'));
 
         if (isCorrect) {
@@ -367,29 +460,24 @@
         } else {
             btnElement.style.borderColor = '#ef4444';
             btnElement.style.backgroundColor = '#fee2e2';
-            feedbackText.innerText = 'Not quite. Check the pattern!';
+            feedbackText.innerText = 'Not quite. Check the pattern again!';
             feedbackText.className = 'feedback-text incorrect';
-            
-            // Optionally highlight the correct answer
         }
 
-        nextBtn.classList.remove('hidden');
+        document.getElementById('next-btn').classList.remove('hidden');
     }
 
     function handleNext() {
         if (currentLevelQuestion >= Q_PER_LEVEL) {
             if (currentLevel >= MAX_LEVELS) {
-                // End of entire game
                 document.getElementById('final-score').innerText = totalScore;
                 switchScreen('trophy-screen');
             } else {
-                // End of level
                 document.getElementById('completed-level-num').innerText = currentLevel;
                 document.getElementById('level-score-display').innerText = levelScore;
                 switchScreen('level-screen');
             }
         } else {
-            // Next question in same level
             generatePuzzle();
         }
     }
