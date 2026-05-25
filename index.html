@@ -5,28 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NGAT Dynamic Practice</title>
+    <title>NGAT Advanced Mastery</title>
     <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --primary: #3b82f6;
+            --success: #10b981;
+            --error: #ef4444;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
             margin: 0;
-            user-select: none; 
+            user-select: none;
             -webkit-user-select: none;
         }
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            background: var(--card);
+            padding: 25px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
             max-width: 600px;
-            width: 90%;
+            width: 92%;
             text-align: center;
         }
         .screen { display: none; }
@@ -37,19 +46,19 @@
             justify-content: space-between;
             margin-bottom: 20px;
             font-weight: 700;
-            color: #64748b;
+            color: #94a3b8;
         }
 
         /* Puzzle Display */
         .puzzle-box {
             background: #f1f5f9;
             padding: 15px;
-            border-radius: 15px;
-            margin: 20px auto;
+            border-radius: 20px;
+            margin: 15px auto;
             display: inline-block;
         }
         .matrix-2x2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .sequence-1x4 { display: flex; gap: 12px; }
+        .sequence-1x4 { display: flex; gap: 10px; }
         
         .cell {
             background: white;
@@ -58,176 +67,167 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 10px;
-            box-shadow: inset 0 0 0 1px #e2e8f0;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05);
         }
-        .cell.empty { font-size: 3rem; color: #cbd5e1; font-weight: bold; }
+        .cell.empty { font-size: 3rem; color: #cbd5e1; font-weight: bold; background: #f8fafc; }
 
         /* Options */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 25px;
         }
         .option-btn {
             background: white;
             border: 3px solid #f1f5f9;
-            border-radius: 15px;
+            border-radius: 18px;
             padding: 10px;
             cursor: pointer;
-            transition: all 0.2s;
-            min-height: 120px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 110px;
             display: flex;
             justify-content: center;
             align-items: center;
             -webkit-tap-highlight-color: transparent;
         }
-        .option-btn:active { transform: scale(0.95); }
-        .option-btn.correct-pick { border-color: #10b981; background: #ecfdf5; }
-        .option-btn.wrong-pick { border-color: #ef4444; background: #fef2f2; }
+        .option-btn:active { transform: scale(0.92); }
+        .option-btn.correct-pick { border-color: var(--success); background: #ecfdf5; }
+        .option-btn.wrong-pick { border-color: var(--error); background: #fef2f2; }
 
         .primary-btn {
-            background: #3b82f6;
+            background: var(--primary);
             color: white;
             border: none;
             padding: 18px;
             font-size: 1.2rem;
             font-weight: 700;
-            border-radius: 12px;
+            border-radius: 14px;
             width: 100%;
-            margin-top: 20px;
+            margin-top: 15px;
             cursor: pointer;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
         }
-        .hidden { display: none; }
+        .secondary-text { color: #64748b; font-size: 0.9rem; margin-top: 10px; }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div id="intro" class="screen active">
-        <h1>NGAT Mastery</h1>
-        <p>Advanced Spatial Reasoning Level 2</p>
-        <button class="primary-btn" onclick="startTest()">Begin Challenge</button>
+        <h1 style="font-size: 2.5rem; margin-bottom: 5px;">NGAT Level 2</h1>
+        <p style="color: #64748b; margin-bottom: 30px;">Object Persistence & Multi-Attribute Logic</p>
+        <button class="primary-btn" onclick="startTest()">Start Practice</button>
     </div>
 
     <div id="test" class="screen">
         <div class="header">
-            <span id="q-num">Q: 1/10</span>
+            <span id="q-num">Question: 1/100</span>
             <span id="score">Score: 0</span>
         </div>
         <div id="puzzle-area" class="puzzle-box"></div>
         <div id="options" class="options-grid"></div>
-        <button id="next-btn" class="primary-btn hidden" onclick="nextQuestion()">Next Pattern</button>
+        <div id="feedback" style="margin-top: 15px; font-weight: bold; min-height: 24px;"></div>
+        <button id="next-btn" class="primary-btn hidden" onclick="nextQuestion()">Next Puzzle</button>
     </div>
 </div>
 
 <script>
-    let state = { q: 1, score: 0, answered: false };
-    const COLORS = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
-    const SHAPES = ['circle', 'square', 'triangle', 'star', 'hexagon'];
+    let state = { q: 1, score: 0, answered: false, currentCorrect: null };
+    const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
+    const SHAPES = ['circle', 'square', 'triangle', 'star'];
 
-    function startTest() {
-        showScreen('test');
-        loadQuestion();
-    }
-
+    function startTest() { showScreen('test'); loadQuestion(); }
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
     }
 
-    function getSVG(p) {
-        const size = p.scale || 1;
-        const rot = p.rot || 0;
-        const color = p.color || '#333';
-        const count = p.count || 1;
-        
-        let svg = `<svg width="90" height="90" viewBox="0 0 100 100" style="transform: rotate(${rot}deg)">`;
-        
-        const renderShape = (cx, cy, s) => {
-            const dim = 40 * s;
-            if (p.shape === 'circle') return `<circle cx="${cx}" cy="${cy}" r="${dim}" fill="${color}" />`;
-            if (p.shape === 'square') return `<rect x="${cx-dim}" y="${cy-dim}" width="${dim*2}" height="${dim*2}" rx="4" fill="${color}" />`;
-            if (p.shape === 'triangle') return `<polygon points="${cx},${cy-dim} ${cx+dim},${cy+dim} ${cx-dim},${cy+dim}" fill="${color}" />`;
-            if (p.shape === 'star') return `<polygon points="${cx},${cy-dim} ${cx+dim*0.4},${cy-dim*0.2} ${cx+dim},${cy-dim*0.2} ${cx+dim*0.5},${cy+dim*0.3} ${cx+dim*0.7},${cy+dim} ${cx},${cy+dim*0.6} ${cx-dim*0.7},${cy+dim} ${cx-dim*0.5},${cy+dim*0.3} ${cx-dim},${cy-dim*0.2} ${cx-dim*0.4},${cy-dim*0.2}" fill="${color}" />`;
-            return '';
-        };
-
-        if (count === 1) svg += renderShape(50, 50, size);
-        else if (count === 2) { svg += renderShape(30, 50, size*0.7); svg += renderShape(70, 50, size*0.7); }
-        else if (count === 4) { 
-            svg += renderShape(30, 30, size*0.5); svg += renderShape(70, 30, size*0.5); 
-            svg += renderShape(30, 70, size*0.5); svg += renderShape(70, 70, size*0.5); 
-        }
-        
+    // --- LAYERED SVG RENDERER ---
+    function renderLayeredSVG(layers) {
+        let svg = `<svg width="90" height="90" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">`;
+        layers.forEach(l => {
+            const color = l.color || '#333';
+            const size = (l.scale || 1) * 40;
+            const rot = l.rot || 0;
+            const cx = l.cx || 50;
+            const cy = l.cy || 50;
+            
+            svg += `<g transform="rotate(${rot} 50 50)">`;
+            if (l.shape === 'circle') svg += `<circle cx="${cx}" cy="${cy}" r="${size}" fill="${color}" />`;
+            if (l.shape === 'square') svg += `<rect x="${cx-size}" y="${cy-size}" width="${size*2}" height="${size*2}" rx="4" fill="${color}" />`;
+            if (l.shape === 'triangle') svg += `<polygon points="${cx},${cy-size} ${cx+size},${cy+size} ${cx-size},${cy+size}" fill="${color}" />`;
+            if (l.shape === 'star') svg += `<polygon points="${cx},${cy-size} ${cx+size*0.4},${cy-size*0.2} ${cx+size},${cy-size*0.2} ${cx+size*0.5},${cy+size*0.3} ${cx+size*0.7},${cy+size} ${cx},${cy+size*0.6} ${cx-size*0.7},${cy+size} ${cx-size*0.5},${cy+size*0.3} ${cx-size},${cy-size*0.2} ${cx-size*0.4},${cy-size*0.2}" fill="${color}" />`;
+            if (l.shape === 'dot') svg += `<circle cx="${cx}" cy="${cy}" r="10" fill="${color}" />`;
+            svg += `</g>`;
+        });
         return svg + `</svg>`;
-    }
-
-    function loadQuestion() {
-        state.answered = false;
-        document.getElementById('next-btn').classList.add('hidden');
-        document.getElementById('q-num').innerText = `Q: ${state.q}/10`;
-        
-        const engine = Math.floor(Math.random() * 5);
-        let puzzle = {};
-
-        if (engine === 0) puzzle = generateMatrixRule(); // 2x2 logic
-        else if (engine === 1) puzzle = generateScaleSequence(); // 1x4 logic
-        else if (engine === 2) puzzle = generateRotationSequence(); // 1x4 logic
-        else if (engine === 3) puzzle = generateCountSequence(); // 1x4 logic
-        else puzzle = generateInversionMatrix(); // 2x2 logic
-
-        renderPuzzle(puzzle);
     }
 
     // --- LOGIC ENGINES ---
 
-    function generateMatrixRule() {
-        const s1 = SHAPES[0], s2 = SHAPES[1], c1 = COLORS[0], c2 = COLORS[1];
+    // Rule 1: Object Persistence (Background stays, foreground moves)
+    function enginePersistence() {
+        const bgShape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+        const bgColor = COLORS[0];
+        const fgColor = COLORS[1];
+        const positions = [[25,25], [75,25], [25,75], [75,75]];
+        
+        const createCell = (posIdx) => [
+            {shape: bgShape, color: bgColor, scale: 0.8},
+            {shape: 'dot', color: fgColor, cx: positions[posIdx][0], cy: positions[posIdx][1]}
+        ];
+
         return {
             layout: 'matrix-2x2',
-            cells: [{shape:s1, color:c1}, {shape:s2, color:c1}, {shape:s1, color:c2}],
-            answer: {shape:s2, color:c2}
+            cells: [createCell(0), createCell(1), createCell(2)],
+            answer: createCell(3)
         };
     }
 
-    function generateScaleSequence() {
-        const s = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-        const c = COLORS[Math.floor(Math.random()*COLORS.length)];
-        return {
-            layout: 'sequence-1x4',
-            cells: [{shape:s, color:c, scale:0.4}, {shape:s, color:c, scale:0.7}, {shape:s, color:c, scale:1.0}],
-            answer: {shape:s, color:c, scale:1.3}
-        };
-    }
-
-    function generateRotationSequence() {
-        const s = 'triangle', c = COLORS[2];
-        const start = [0, 45, 90][Math.floor(Math.random()*3)];
-        return {
-            layout: 'sequence-1x4',
-            cells: [{shape:s, color:c, rot:start}, {shape:s, color:c, rot:start+90}, {shape:s, color:c, rot:start+180}],
-            answer: {shape:s, color:c, rot:start+270}
-        };
-    }
-
-    function generateCountSequence() {
-        const s = SHAPES[3], c = COLORS[4];
-        return {
-            layout: 'sequence-1x4',
-            cells: [{shape:s, color:c, count:1}, {shape:s, color:c, count:2}, {shape:s, color:c, count:1}],
-            answer: {shape:s, color:c, count:2}
-        };
-    }
-
-    function generateInversionMatrix() {
-        const c1 = COLORS[0], c2 = COLORS[1];
+    // Rule 2: Multi-Attribute Analogy (Row-based addition)
+    function engineAnalogy() {
+        const s1 = SHAPES[Math.floor(Math.random()*2)]; // square or circle
+        const s2 = SHAPES[Math.floor(Math.random()*2)+2]; // triangle or star
+        const c = COLORS[2];
+        
         return {
             layout: 'matrix-2x2',
-            cells: [{shape:'circle', color:c1}, {shape:'square', color:c1}, {shape:'circle', color:c2}],
-            answer: {shape:'square', color:c2}
+            cells: [
+                [{shape: s1, color: c, scale: 0.8}], [{shape: s1, color: c, scale: 0.8}, {shape: 'dot', color: '#fff', cx: 50, cy: 50}],
+                [{shape: s2, color: c, scale: 0.8}], '?'
+            ],
+            answer: [{shape: s2, color: c, scale: 0.8}, {shape: 'dot', color: '#fff', cx: 50, cy: 50}]
         };
+    }
+
+    // Rule 3: Complex Rotation (Rotation + Color shift)
+    function engineComplexRotation() {
+        const s = 'triangle';
+        const c1 = COLORS[3], c2 = COLORS[4];
+        const createCell = (r, c) => [{shape: s, color: c, rot: r, scale: 0.8}];
+        
+        return {
+            layout: 'sequence-1x4',
+            cells: [createCell(0, c1), createCell(90, c2), createCell(180, c1)],
+            answer: createCell(270, c2)
+        };
+    }
+
+    function loadQuestion() {
+        state.answered = false;
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('next-btn').classList.add('hidden');
+        document.getElementById('q-num').innerText = `Question: ${state.q}/100`;
+
+        const engines = [enginePersistence, engineAnalogy, engineComplexRotation];
+        const puzzle = engines[Math.floor(Math.random() * engines.length)]();
+        state.currentCorrect = puzzle.answer;
+
+        renderPuzzle(puzzle);
     }
 
     function renderPuzzle(p) {
@@ -238,52 +238,66 @@
         p.cells.forEach(c => {
             const div = document.createElement('div');
             div.className = 'cell';
-            div.innerHTML = getSVG(c);
+            div.innerHTML = (c === '?') ? '?' : renderLayeredSVG(c);
             grid.appendChild(div);
         });
         
-        const qCell = document.createElement('div');
-        qCell.className = 'cell empty';
-        qCell.innerText = '?';
-        grid.appendChild(qCell);
+        if(p.layout === 'matrix-2x2') {
+            const q = document.createElement('div');
+            q.className = 'cell empty'; q.innerText = '?';
+            grid.appendChild(q);
+        }
 
         renderOptions(p.answer);
     }
 
     function renderOptions(correct) {
-        const options = document.getElementById('options');
-        options.innerHTML = '';
-        let choices = [correct];
+        const optionsArea = document.getElementById('options');
+        optionsArea.innerHTML = '';
+        let choices = [JSON.stringify(correct)];
         
         while(choices.length < 4) {
-            let distractor = {...correct, color: COLORS[Math.floor(Math.random()*COLORS.length)]};
-            if (Math.random() > 0.5) distractor.shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-            if (!choices.some(c => JSON.stringify(c) === JSON.stringify(distractor))) choices.push(distractor);
+            // Generate a slightly wrong distractor
+            let distractor = JSON.parse(JSON.stringify(correct));
+            const randomLayer = distractor[Math.floor(Math.random()*distractor.length)];
+            randomLayer.color = COLORS[Math.floor(Math.random()*COLORS.length)];
+            if(randomLayer.rot !== undefined) randomLayer.rot += 45;
+            
+            let dStr = JSON.stringify(distractor);
+            if(!choices.includes(dStr)) choices.push(dStr);
         }
         
-        choices.sort(() => Math.random() - 0.5).forEach(c => {
+        choices.sort(() => Math.random() - 0.5).forEach(cStr => {
+            const c = JSON.parse(cStr);
             const btn = document.createElement('button');
             btn.className = 'option-btn';
-            btn.innerHTML = getSVG(c);
+            btn.innerHTML = renderLayeredSVG(c);
             btn.onclick = () => {
                 if(state.answered) return;
                 state.answered = true;
-                if(JSON.stringify(c) === JSON.stringify(correct)) {
-                    btn.classList.add('correct-pick');
+                const isCorrect = (cStr === JSON.stringify(correct));
+                if(isCorrect) {
                     state.score++;
+                    btn.classList.add('correct-pick');
+                    document.getElementById('feedback').innerText = 'Correct!';
+                    document.getElementById('feedback').style.color = 'var(--success)';
                 } else {
                     btn.classList.add('wrong-pick');
+                    document.getElementById('feedback').innerText = 'Check the pattern...';
+                    document.getElementById('feedback').style.color = 'var(--error)';
                 }
                 document.getElementById('score').innerText = `Score: ${state.score}`;
                 document.getElementById('next-btn').classList.remove('hidden');
+                document.querySelectorAll('.option-btn').forEach(b => b.style.opacity = '0.6');
+                btn.style.opacity = '1';
             };
-            options.appendChild(btn);
+            optionsArea.appendChild(btn);
         });
     }
 
     function nextQuestion() {
-        if(state.q < 10) { state.q++; loadQuestion(); }
-        else alert(`Finish! Total Score: ${state.score}/10`);
+        if(state.q < 100) { state.q++; loadQuestion(); }
+        else { alert("Amazing! You finished 100 questions."); location.reload(); }
     }
 </script>
 </body>
