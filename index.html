@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- These meta tags optimize the app for the iPad Home Screen -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,40 +14,67 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 40px 20px;
+            justify-content: center;
+            min-height: 100vh;
             margin: 0;
-            /* Prevents text selection while tapping on iPad */
             user-select: none; 
             -webkit-user-select: none;
         }
         .container {
             background: white;
             padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.08);
             max-width: 500px;
-            width: 100%;
+            width: 90%;
             text-align: center;
+            position: relative;
         }
+        
+        /* Screen Management */
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* Typography & Layout */
+        h1 { margin-top: 0; font-size: 2rem; color: #1e293b; }
+        h2 { margin-top: 0; font-size: 1.4rem; color: #334155; }
+        p.subtitle { color: #64748b; font-size: 1.1rem; line-height: 1.5; margin-bottom: 30px; }
+        
         .header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: center;
+            margin-bottom: 15px;
             font-size: 1.1rem;
             font-weight: 600;
-            color: #555;
+            color: #475569;
             padding-bottom: 15px;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid #f1f5f9;
         }
+
+        .restart-btn {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 6px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .restart-btn:active { background: #fee2e2; }
+
+        /* The Matrix */
         .matrix-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
             width: 240px;
-            margin: 30px auto;
+            margin: 20px auto;
             background: #e2e8f0;
             padding: 10px;
-            border-radius: 8px;
+            border-radius: 12px;
         }
         .matrix-cell {
             background: white;
@@ -56,72 +82,174 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 4rem;
             color: #cbd5e1;
             font-weight: bold;
         }
+
+        /* Options */
         .options-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 15px;
-            margin-top: 30px;
+            margin-top: 25px;
         }
         .option-btn {
             background: white;
-            border: 2px solid #e2e8f0;
+            border: 3px solid #e2e8f0;
             border-radius: 12px;
             padding: 15px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.2s ease;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100px;
-            /* Removes the blue tap highlight on iOS */
             -webkit-tap-highlight-color: transparent; 
         }
-        .option-btn:active {
-            transform: scale(0.96);
-        }
-        .feedback {
-            height: 30px;
+        .option-btn.disabled { pointer-events: none; opacity: 0.7; }
+        .option-btn:active:not(.disabled) { transform: scale(0.96); }
+
+        /* Feedback & Controls */
+        .feedback-area {
+            min-height: 80px;
             margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .feedback-text {
             font-weight: bold;
             font-size: 1.3rem;
         }
         .correct { color: #10b981; }
         .incorrect { color: #ef4444; }
+
+        .primary-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 16px 24px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 12px;
+            width: 100%;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+        }
+        .primary-btn:active { transform: scale(0.98); background: #2563eb; }
+        
+        .hidden { display: none !important; }
+
+        /* Trophy Screen Specifics */
+        .trophy-icon {
+            font-size: 6rem;
+            margin: 20px 0;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        .stats-box {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+            color: #334155;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="header">
-        <span id="question-count">Question: 1 / 100</span>
-        <span id="score">Score: 0</span>
-    </div>
     
-    <h2 style="margin-top: 0;">Which shape completes the puzzle?</h2>
-    
-    <div class="matrix-grid">
-        <div class="matrix-cell" id="cell-0"></div>
-        <div class="matrix-cell" id="cell-1"></div>
-        <div class="matrix-cell" id="cell-2"></div>
-        <div class="matrix-cell" id="cell-3">?</div>
+    <div id="intro-screen" class="screen active">
+        <h1>NGAT Practice</h1>
+        <p class="subtitle">Get ready to test your pattern recognition skills! The challenge consists of 10 levels, with 10 questions each.</p>
+        <div class="matrix-grid" style="transform: scale(0.8); margin-bottom: 40px;">
+            <div class="matrix-cell">
+                <svg width="60" height="60" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="#3b82f6" /></svg>
+            </div>
+            <div class="matrix-cell">
+                <svg width="60" height="60" viewBox="0 0 100 100"><rect x="15" y="15" width="70" height="70" rx="8" fill="#10b981" /></svg>
+            </div>
+            <div class="matrix-cell">
+                <svg width="60" height="60" viewBox="0 0 100 100"><polygon points="50,15 90,85 10,85" fill="#ef4444" rx="5" /></svg>
+            </div>
+            <div class="matrix-cell">?</div>
+        </div>
+        <button class="primary-btn" onclick="startGame()">Start Test</button>
     </div>
 
-    <div class="options-grid" id="options"></div>
-    <div id="feedback" class="feedback"></div>
+    <div id="test-screen" class="screen">
+        <div class="header">
+            <span id="level-counter">Level 1</span>
+            <span id="question-counter">Q: 1/10</span>
+            <button class="restart-btn" onclick="resetToIntro()">Restart</button>
+        </div>
+        
+        <h2>Which shape completes the puzzle?</h2>
+        
+        <div class="matrix-grid">
+            <div class="matrix-cell" id="cell-0"></div>
+            <div class="matrix-cell" id="cell-1"></div>
+            <div class="matrix-cell" id="cell-2"></div>
+            <div class="matrix-cell" id="cell-3">?</div>
+        </div>
+
+        <div class="options-grid" id="options"></div>
+        
+        <div class="feedback-area">
+            <div id="feedback-text" class="feedback-text"></div>
+            <button id="next-btn" class="primary-btn hidden" onclick="handleNext()">Next Question</button>
+        </div>
+    </div>
+
+    <div id="level-screen" class="screen">
+        <h1>Level Complete!</h1>
+        <div class="trophy-icon">⭐</div>
+        <div class="stats-box">
+            <p>You finished Level <span id="completed-level-num"></span>!</p>
+            <p>Level Score: <strong id="level-score-display"></strong> out of 10</p>
+        </div>
+        <button class="primary-btn" onclick="startNextLevel()">Continue to Next Level</button>
+    </div>
+
+    <div id="trophy-screen" class="screen">
+        <h1>Amazing Job!</h1>
+        <div class="trophy-icon">🏆</div>
+        <p class="subtitle">You have completed all 100 questions and conquered the challenge.</p>
+        <div class="stats-box">
+            <p>Final Overall Score:</p>
+            <p style="font-size: 2rem; font-weight: bold; margin: 10px 0; color: #10b981;"><span id="final-score"></span> / 100</p>
+        </div>
+        <button class="primary-btn" onclick="resetToIntro()">Play Again</button>
+    </div>
+
 </div>
 
 <script>
-    let currentQuestion = 1;
-    let score = 0;
-    const MAX_QUESTIONS = 100;
-    let isWaiting = false;
+    // State Variables
+    let currentGlobalQuestion = 0;
+    let currentLevelQuestion = 0;
+    let currentLevel = 1;
+    let totalScore = 0;
+    let levelScore = 0;
+    let hasAnswered = false;
 
-    // The logic engine components
+    const Q_PER_LEVEL = 10;
+    const MAX_LEVELS = 10;
+    const TOTAL_Q = Q_PER_LEVEL * MAX_LEVELS;
+
+    // Logic Engine Components
     const shapes = ['circle', 'square', 'triangle', 'star'];
     const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
 
@@ -129,37 +257,62 @@
         const base = `<svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">`;
         if (shape === 'circle') return `${base}<circle cx="50" cy="50" r="40" fill="${color}" /></svg>`;
         if (shape === 'square') return `${base}<rect x="15" y="15" width="70" height="70" rx="8" fill="${color}" /></svg>`;
-        if (shape === 'triangle') return `${base}<polygon points="50,15 90,85 10,85" fill="${color}" rx="5" /></svg>`;
-        if (shape === 'star') return `${base}<polygon points="50,10 61,35 88,35 67,52 74,78 50,62 26,78 33,52 12,35 39,35" fill="${color}" /></svg>`;
+        if (shape === 'triangle') return `${base}<polygon points="50,15 90,85 10,85" fill="${color}" stroke-linejoin="round" /></svg>`;
+        if (shape === 'star') return `${base}<polygon points="50,10 61,35 88,35 67,52 74,78 50,62 26,78 33,52 12,35 39,35" fill="${color}" stroke-linejoin="round"/></svg>`;
     }
 
-    function getRandomItem(arr) {
-        return arr[Math.floor(Math.random() * arr.length)];
+    function getRandomItem(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // Screen Management
+    function switchScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
     }
 
-    function generatePuzzle() {
-        if (currentQuestion > MAX_QUESTIONS) {
-            endGame();
-            return;
+    function startGame() {
+        currentGlobalQuestion = 0;
+        currentLevel = 1;
+        totalScore = 0;
+        startNextLevel(true);
+    }
+
+    function startNextLevel(isStart = false) {
+        if (!isStart) currentLevel++;
+        currentLevelQuestion = 0;
+        levelScore = 0;
+        switchScreen('test-screen');
+        generatePuzzle();
+    }
+
+    function resetToIntro() {
+        if (confirm("Are you sure you want to restart the whole test? Your progress will be lost.")) {
+            switchScreen('intro-screen');
         }
+    }
 
-        isWaiting = false;
-        document.getElementById('feedback').innerText = '';
-        document.getElementById('question-count').innerText = `Question: ${currentQuestion} / ${MAX_QUESTIONS}`;
-        document.getElementById('score').innerText = `Score: ${score}`;
+    // Core Game Logic
+    function generatePuzzle() {
+        hasAnswered = false;
+        currentGlobalQuestion++;
+        currentLevelQuestion++;
 
-        // Rule Generation: Shape stays the same in columns, Color stays the same in rows
+        // Update UI Text
+        document.getElementById('level-counter').innerText = `Level ${currentLevel}`;
+        document.getElementById('question-counter').innerText = `Q: ${currentLevelQuestion}/${Q_PER_LEVEL}`;
+        
+        // Reset Feedback Area
+        document.getElementById('feedback-text').innerText = '';
+        document.getElementById('next-btn').classList.add('hidden');
+
+        // Logic Generation
         let col1Shape = getRandomItem(shapes);
         let col2Shape = getRandomItem(shapes.filter(s => s !== col1Shape));
-        
         let row1Color = getRandomItem(colors);
         let row2Color = getRandomItem(colors.filter(c => c !== row1Color));
 
-        let cell0 = { shape: col1Shape, color: row1Color }; // Top-Left
-        let cell1 = { shape: col2Shape, color: row1Color }; // Top-Right
-        let cell2 = { shape: col1Shape, color: row2Color }; // Bottom-Left
-        
-        // Correct Answer (Bottom-Right) must be col2Shape and row2Color
+        let cell0 = { shape: col1Shape, color: row1Color }; 
+        let cell1 = { shape: col2Shape, color: row1Color }; 
+        let cell2 = { shape: col1Shape, color: row2Color }; 
         let correctAnswer = { shape: col2Shape, color: row2Color };
 
         document.getElementById('cell-0').innerHTML = getSVG(cell0.shape, cell0.color);
@@ -174,19 +327,13 @@
         optionsDiv.innerHTML = '';
         
         let choices = [correct];
-        
         while(choices.length < 4) {
             let randShape = getRandomItem(shapes);
             let randColor = getRandomItem(colors);
-            
-            // Avoid duplicate choices
             let isDuplicate = choices.some(c => c.shape === randShape && c.color === randColor);
-            if (!isDuplicate) {
-                choices.push({ shape: randShape, color: randColor });
-            }
+            if (!isDuplicate) choices.push({ shape: randShape, color: randColor });
         }
 
-        // Shuffle choices
         choices.sort(() => Math.random() - 0.5);
 
         choices.forEach(choice => {
@@ -195,46 +342,57 @@
             btn.innerHTML = getSVG(choice.shape, choice.color);
             let isCorrect = (choice.shape === correct.shape && choice.color === correct.color);
             
-            // Handle the click logic
-            btn.onclick = () => {
-                if (isWaiting) return;
-                isWaiting = true;
-
-                const feedback = document.getElementById('feedback');
-
-                if (isCorrect) {
-                    score++;
-                    btn.style.borderColor = '#10b981';
-                    btn.style.backgroundColor = '#d1fae5';
-                    feedback.innerText = 'Correct!';
-                    feedback.className = 'feedback correct';
-                } else {
-                    btn.style.borderColor = '#ef4444';
-                    btn.style.backgroundColor = '#fee2e2';
-                    feedback.innerText = 'Incorrect. Try the next one!';
-                    feedback.className = 'feedback incorrect';
-                }
-                
-                currentQuestion++;
-                
-                // Wait 1.5 seconds, then load next puzzle
-                setTimeout(generatePuzzle, 1500);
-            };
-            
+            btn.onclick = () => evaluateAnswer(isCorrect, btn);
             optionsDiv.appendChild(btn);
         });
     }
 
-    function endGame() {
-        document.querySelector('.container').innerHTML = `
-            <h2>Practice Complete!</h2>
-            <p style="font-size: 1.3rem; margin: 20px 0;">Final Score: <strong>${score} out of ${MAX_QUESTIONS}</strong></p>
-            <button class="option-btn" style="width: 100%; font-size: 1.2rem; font-weight: bold;" onclick="location.reload()">Start New Practice</button>
-        `;
+    function evaluateAnswer(isCorrect, btnElement) {
+        if (hasAnswered) return;
+        hasAnswered = true;
+
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+
+        // Disable all other buttons
+        document.querySelectorAll('.option-btn').forEach(btn => btn.classList.add('disabled'));
+
+        if (isCorrect) {
+            levelScore++;
+            totalScore++;
+            btnElement.style.borderColor = '#10b981';
+            btnElement.style.backgroundColor = '#d1fae5';
+            feedbackText.innerText = 'Correct! Great job.';
+            feedbackText.className = 'feedback-text correct';
+        } else {
+            btnElement.style.borderColor = '#ef4444';
+            btnElement.style.backgroundColor = '#fee2e2';
+            feedbackText.innerText = 'Not quite. Check the pattern!';
+            feedbackText.className = 'feedback-text incorrect';
+            
+            // Optionally highlight the correct answer
+        }
+
+        nextBtn.classList.remove('hidden');
     }
 
-    // Start the first puzzle
-    generatePuzzle();
+    function handleNext() {
+        if (currentLevelQuestion >= Q_PER_LEVEL) {
+            if (currentLevel >= MAX_LEVELS) {
+                // End of entire game
+                document.getElementById('final-score').innerText = totalScore;
+                switchScreen('trophy-screen');
+            } else {
+                // End of level
+                document.getElementById('completed-level-num').innerText = currentLevel;
+                document.getElementById('level-score-display').innerText = levelScore;
+                switchScreen('level-screen');
+            }
+        } else {
+            // Next question in same level
+            generatePuzzle();
+        }
+    }
 </script>
 </body>
 </html>
