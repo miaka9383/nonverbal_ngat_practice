@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>NGAT Advanced Mastery</title>
+    <title>NGAT Nonverbal Test Prep</title>
     <style>
         :root {
             --bg: #f8fafc;
@@ -38,15 +38,35 @@
             width: 92%;
             text-align: center;
         }
+        
+        /* Screen Management */
         .screen { display: none; }
         .screen.active { display: block; }
+        
+        /* Typography */
+        h1 { margin-top: 0; font-size: 2.2rem; color: #1e293b; line-height: 1.2; }
+        p.subtitle { color: #64748b; font-size: 1.1rem; margin-bottom: 30px; }
         
         .header {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             margin-bottom: 20px;
             font-weight: 700;
             color: #94a3b8;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
+        }
+
+        .restart-btn {
+            background: none;
+            border: none;
+            color: var(--error);
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 6px;
         }
 
         /* Puzzle Display */
@@ -109,41 +129,114 @@
             margin-top: 15px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            -webkit-tap-highlight-color: transparent;
         }
-        .secondary-text { color: #64748b; font-size: 0.9rem; margin-top: 10px; }
+        .primary-btn:active { transform: scale(0.98); background: #2563eb; }
+        
         .hidden { display: none !important; }
+
+        /* Intermission Screens */
+        .trophy-icon { font-size: 5rem; margin: 20px 0; animation: bounce 2s infinite; }
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-15px); }
+            60% { transform: translateY(-7px); }
+        }
+        .stats-box {
+            background: #f8fafc;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            font-size: 1.2rem;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div id="intro" class="screen active">
-        <h1 style="font-size: 2.5rem; margin-bottom: 5px;">NGAT Level 2</h1>
-        <p style="color: #64748b; margin-bottom: 30px;">Object Persistence & Multi-Attribute Logic</p>
-        <button class="primary-btn" onclick="startTest()">Start Practice</button>
+    
+    <div id="intro-screen" class="screen active">
+        <h1>NGAT Nonverbal Test Prep</h1>
+        <p class="subtitle">Advanced Spatial Reasoning & Object Persistence. The challenge consists of 10 levels, 10 questions each.</p>
+        <button class="primary-btn" onclick="startGame()">Start Test</button>
     </div>
 
-    <div id="test" class="screen">
+    <div id="test-screen" class="screen">
         <div class="header">
-            <span id="q-num">Question: 1/100</span>
-            <span id="score">Score: 0</span>
+            <span id="level-counter">Level 1</span>
+            <span id="q-num">Q: 1/10</span>
+            <button class="restart-btn" onclick="resetToIntro()">Restart</button>
         </div>
+        
         <div id="puzzle-area" class="puzzle-box"></div>
         <div id="options" class="options-grid"></div>
-        <div id="feedback" style="margin-top: 15px; font-weight: bold; min-height: 24px;"></div>
-        <button id="next-btn" class="primary-btn hidden" onclick="nextQuestion()">Next Puzzle</button>
+        <div id="feedback" style="margin-top: 15px; font-weight: bold; min-height: 24px; font-size: 1.2rem;"></div>
+        <button id="next-btn" class="primary-btn hidden" onclick="handleNext()">Next Puzzle</button>
     </div>
+
+    <div id="level-screen" class="screen">
+        <h1>Level Complete!</h1>
+        <div class="trophy-icon">⭐</div>
+        <div class="stats-box">
+            <p>You finished Level <strong id="completed-level-num"></strong>!</p>
+            <p style="margin-top: 10px;">Level Score: <strong id="level-score-display" style="color: var(--success); font-size: 1.4rem;"></strong> / 10</p>
+        </div>
+        <button class="primary-btn" onclick="startNextLevel()">Continue to Next Level</button>
+    </div>
+
+    <div id="trophy-screen" class="screen">
+        <h1>Amazing Job!</h1>
+        <div class="trophy-icon">🏆</div>
+        <p class="subtitle">You have completed all 100 questions and conquered the challenge.</p>
+        <div class="stats-box">
+            <p>Final Overall Score:</p>
+            <p style="font-size: 2.5rem; font-weight: bold; margin: 10px 0; color: var(--success);"><span id="final-score"></span> / 100</p>
+        </div>
+        <button class="primary-btn" onclick="resetToIntro()">Play Again</button>
+    </div>
+
 </div>
 
 <script>
-    let state = { q: 1, score: 0, answered: false, currentCorrect: null };
+    // System State
+    let state = { 
+        level: 1, 
+        qInLevel: 0, 
+        totalScore: 0, 
+        levelScore: 0, 
+        answered: false 
+    };
+    
+    const Q_PER_LEVEL = 10;
+    const MAX_LEVELS = 10;
     const COLORS = ['#3b82f6', '#ef4444', '#10b981', '#f59e0b', '#8b5cf6', '#06b6d4'];
     const SHAPES = ['circle', 'square', 'triangle', 'star'];
 
-    function startTest() { showScreen('test'); loadQuestion(); }
+    // Screen Management
     function showScreen(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+    }
+
+    function startGame() {
+        state.level = 1;
+        state.totalScore = 0;
+        startNextLevel(true);
+    }
+
+    function startNextLevel(isFirst = false) {
+        if (!isFirst) state.level++;
+        state.qInLevel = 0;
+        state.levelScore = 0;
+        showScreen('test-screen');
+        loadQuestion();
+    }
+
+    function resetToIntro() {
+        if (confirm("Are you sure you want to restart? Your progress will be lost.")) {
+            showScreen('intro-screen');
+        }
     }
 
     // --- LAYERED SVG RENDERER ---
@@ -168,8 +261,6 @@
     }
 
     // --- LOGIC ENGINES ---
-
-    // Rule 1: Object Persistence (Background stays, foreground moves)
     function enginePersistence() {
         const bgShape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
         const bgColor = COLORS[0];
@@ -188,10 +279,9 @@
         };
     }
 
-    // Rule 2: Multi-Attribute Analogy (Row-based addition)
     function engineAnalogy() {
-        const s1 = SHAPES[Math.floor(Math.random()*2)]; // square or circle
-        const s2 = SHAPES[Math.floor(Math.random()*2)+2]; // triangle or star
+        const s1 = SHAPES[Math.floor(Math.random()*2)]; 
+        const s2 = SHAPES[Math.floor(Math.random()*2)+2]; 
         const c = COLORS[2];
         
         return {
@@ -204,7 +294,6 @@
         };
     }
 
-    // Rule 3: Complex Rotation (Rotation + Color shift)
     function engineComplexRotation() {
         const s = 'triangle';
         const c1 = COLORS[3], c2 = COLORS[4];
@@ -217,16 +306,18 @@
         };
     }
 
+    // --- TEST EXECUTION ---
     function loadQuestion() {
         state.answered = false;
+        state.qInLevel++;
+        
         document.getElementById('feedback').innerText = '';
         document.getElementById('next-btn').classList.add('hidden');
-        document.getElementById('q-num').innerText = `Question: ${state.q}/100`;
+        document.getElementById('level-counter').innerText = `Level ${state.level}`;
+        document.getElementById('q-num').innerText = `Q: ${state.qInLevel}/${Q_PER_LEVEL}`;
 
         const engines = [enginePersistence, engineAnalogy, engineComplexRotation];
         const puzzle = engines[Math.floor(Math.random() * engines.length)]();
-        state.currentCorrect = puzzle.answer;
-
         renderPuzzle(puzzle);
     }
 
@@ -257,7 +348,6 @@
         let choices = [JSON.stringify(correct)];
         
         while(choices.length < 4) {
-            // Generate a slightly wrong distractor
             let distractor = JSON.parse(JSON.stringify(correct));
             const randomLayer = distractor[Math.floor(Math.random()*distractor.length)];
             randomLayer.color = COLORS[Math.floor(Math.random()*COLORS.length)];
@@ -272,12 +362,15 @@
             const btn = document.createElement('button');
             btn.className = 'option-btn';
             btn.innerHTML = renderLayeredSVG(c);
+            
             btn.onclick = () => {
                 if(state.answered) return;
                 state.answered = true;
                 const isCorrect = (cStr === JSON.stringify(correct));
+                
                 if(isCorrect) {
-                    state.score++;
+                    state.levelScore++;
+                    state.totalScore++;
                     btn.classList.add('correct-pick');
                     document.getElementById('feedback').innerText = 'Correct!';
                     document.getElementById('feedback').style.color = 'var(--success)';
@@ -286,7 +379,7 @@
                     document.getElementById('feedback').innerText = 'Check the pattern...';
                     document.getElementById('feedback').style.color = 'var(--error)';
                 }
-                document.getElementById('score').innerText = `Score: ${state.score}`;
+                
                 document.getElementById('next-btn').classList.remove('hidden');
                 document.querySelectorAll('.option-btn').forEach(b => b.style.opacity = '0.6');
                 btn.style.opacity = '1';
@@ -295,9 +388,19 @@
         });
     }
 
-    function nextQuestion() {
-        if(state.q < 100) { state.q++; loadQuestion(); }
-        else { alert("Amazing! You finished 100 questions."); location.reload(); }
+    function handleNext() {
+        if (state.qInLevel < Q_PER_LEVEL) {
+            loadQuestion();
+        } else {
+            if (state.level >= MAX_LEVELS) {
+                document.getElementById('final-score').innerText = state.totalScore;
+                showScreen('trophy-screen');
+            } else {
+                document.getElementById('completed-level-num').innerText = state.level;
+                document.getElementById('level-score-display').innerText = state.levelScore;
+                showScreen('level-screen');
+            }
+        }
     }
 </script>
 </body>
