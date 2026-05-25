@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- These meta tags optimize the app for the iPad Home Screen -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>NGAT Practice</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+            margin: 0;
+            /* Prevents text selection while tapping on iPad */
+            user-select: none; 
+            -webkit-user-select: none;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #555;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eee;
+        }
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            width: 240px;
+            margin: 30px auto;
+            background: #e2e8f0;
+            padding: 10px;
+            border-radius: 8px;
+        }
+        .matrix-cell {
+            background: white;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 6px;
+            font-size: 4rem;
+            color: #cbd5e1;
+            font-weight: bold;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+            /* Removes the blue tap highlight on iOS */
+            -webkit-tap-highlight-color: transparent; 
+        }
+        .option-btn:active {
+            transform: scale(0.96);
+        }
+        .feedback {
+            height: 30px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.3rem;
+        }
+        .correct { color: #10b981; }
+        .incorrect { color: #ef4444; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <span id="question-count">Question: 1 / 100</span>
+        <span id="score">Score: 0</span>
+    </div>
+    
+    <h2 style="margin-top: 0;">Which shape completes the puzzle?</h2>
+    
+    <div class="matrix-grid">
+        <div class="matrix-cell" id="cell-0"></div>
+        <div class="matrix-cell" id="cell-1"></div>
+        <div class="matrix-cell" id="cell-2"></div>
+        <div class="matrix-cell" id="cell-3">?</div>
+    </div>
+
+    <div class="options-grid" id="options"></div>
+    <div id="feedback" class="feedback"></div>
+</div>
+
+<script>
+    let currentQuestion = 1;
+    let score = 0;
+    const MAX_QUESTIONS = 100;
+    let isWaiting = false;
+
+    // The logic engine components
+    const shapes = ['circle', 'square', 'triangle', 'star'];
+    const colors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
+
+    function getSVG(shape, color) {
+        const base = `<svg width="80" height="80" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">`;
+        if (shape === 'circle') return `${base}<circle cx="50" cy="50" r="40" fill="${color}" /></svg>`;
+        if (shape === 'square') return `${base}<rect x="15" y="15" width="70" height="70" rx="8" fill="${color}" /></svg>`;
+        if (shape === 'triangle') return `${base}<polygon points="50,15 90,85 10,85" fill="${color}" rx="5" /></svg>`;
+        if (shape === 'star') return `${base}<polygon points="50,10 61,35 88,35 67,52 74,78 50,62 26,78 33,52 12,35 39,35" fill="${color}" /></svg>`;
+    }
+
+    function getRandomItem(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function generatePuzzle() {
+        if (currentQuestion > MAX_QUESTIONS) {
+            endGame();
+            return;
+        }
+
+        isWaiting = false;
+        document.getElementById('feedback').innerText = '';
+        document.getElementById('question-count').innerText = `Question: ${currentQuestion} / ${MAX_QUESTIONS}`;
+        document.getElementById('score').innerText = `Score: ${score}`;
+
+        // Rule Generation: Shape stays the same in columns, Color stays the same in rows
+        let col1Shape = getRandomItem(shapes);
+        let col2Shape = getRandomItem(shapes.filter(s => s !== col1Shape));
+        
+        let row1Color = getRandomItem(colors);
+        let row2Color = getRandomItem(colors.filter(c => c !== row1Color));
+
+        let cell0 = { shape: col1Shape, color: row1Color }; // Top-Left
+        let cell1 = { shape: col2Shape, color: row1Color }; // Top-Right
+        let cell2 = { shape: col1Shape, color: row2Color }; // Bottom-Left
+        
+        // Correct Answer (Bottom-Right) must be col2Shape and row2Color
+        let correctAnswer = { shape: col2Shape, color: row2Color };
+
+        document.getElementById('cell-0').innerHTML = getSVG(cell0.shape, cell0.color);
+        document.getElementById('cell-1').innerHTML = getSVG(cell1.shape, cell1.color);
+        document.getElementById('cell-2').innerHTML = getSVG(cell2.shape, cell2.color);
+
+        generateOptions(correctAnswer);
+    }
+
+    function generateOptions(correct) {
+        const optionsDiv = document.getElementById('options');
+        optionsDiv.innerHTML = '';
+        
+        let choices = [correct];
+        
+        while(choices.length < 4) {
+            let randShape = getRandomItem(shapes);
+            let randColor = getRandomItem(colors);
+            
+            // Avoid duplicate choices
+            let isDuplicate = choices.some(c => c.shape === randShape && c.color === randColor);
+            if (!isDuplicate) {
+                choices.push({ shape: randShape, color: randColor });
+            }
+        }
+
+        // Shuffle choices
+        choices.sort(() => Math.random() - 0.5);
+
+        choices.forEach(choice => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = getSVG(choice.shape, choice.color);
+            let isCorrect = (choice.shape === correct.shape && choice.color === correct.color);
+            
+            // Handle the click logic
+            btn.onclick = () => {
+                if (isWaiting) return;
+                isWaiting = true;
+
+                const feedback = document.getElementById('feedback');
+
+                if (isCorrect) {
+                    score++;
+                    btn.style.borderColor = '#10b981';
+                    btn.style.backgroundColor = '#d1fae5';
+                    feedback.innerText = 'Correct!';
+                    feedback.className = 'feedback correct';
+                } else {
+                    btn.style.borderColor = '#ef4444';
+                    btn.style.backgroundColor = '#fee2e2';
+                    feedback.innerText = 'Incorrect. Try the next one!';
+                    feedback.className = 'feedback incorrect';
+                }
+                
+                currentQuestion++;
+                
+                // Wait 1.5 seconds, then load next puzzle
+                setTimeout(generatePuzzle, 1500);
+            };
+            
+            optionsDiv.appendChild(btn);
+        });
+    }
+
+    function endGame() {
+        document.querySelector('.container').innerHTML = `
+            <h2>Practice Complete!</h2>
+            <p style="font-size: 1.3rem; margin: 20px 0;">Final Score: <strong>${score} out of ${MAX_QUESTIONS}</strong></p>
+            <button class="option-btn" style="width: 100%; font-size: 1.2rem; font-weight: bold;" onclick="location.reload()">Start New Practice</button>
+        `;
+    }
+
+    // Start the first puzzle
+    generatePuzzle();
+</script>
+</body>
+</html>
